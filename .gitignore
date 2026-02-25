@@ -1,0 +1,83 @@
+# Git Ignore pour Projet IoT Security
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checksum
+
+# Data (trop volumineux)
+data/raw/
+data/processed/
+data/preprocessed/
+*.csv
+*.xlsx
+*.parquet
+*.npz
+*.npy
+
+# Modèles (trop volumineux)
+models/*.pt
+models/*.pth
+models/*.onnx
+*.pkl
+*.joblib
+
+# Résultats
+results/
+*.json
+*.log
+logs/
+
+# Temp files
+temp/
+tmp/
+.tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# Autres
+.env
+*.bak
+*.backup
