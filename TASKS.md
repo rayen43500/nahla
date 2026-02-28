@@ -40,22 +40,22 @@
 **Priorité:** HAUTE  
 **Dépendances:** Aucune  
 
-- [ ] **5.1** Créer script `download_datasets.py`
-  - [ ] Télécharger CICIDS2017 (attaques variées: DoS, DDoS, infiltration)
-  - [ ] Télécharger NSL-KDD (dataset classique léger)
-  - [ ] Télécharger IoT-23 (orienté IoT)
-  - [ ] Gérer versioning des datasets
+- [x] **5.1** Créer script `download_datasets.py`
+  - [x] Télécharger CICIDS2017 (attaques variées: DoS, DDoS, infiltration)
+  - [x] Télécharger NSL-KDD (dataset classique léger)
+  - [x] Télécharger IoT-23 (orienté IoT)
+  - [x] Gérer versioning des datasets
   
-- [ ] **5.2** Créer script `feature_extraction.py`
-  - [ ] Extraire features réseau: IP src/dst, ports, protocoles
-  - [ ] Calculer taille paquets, flags TCP, durations
-  - [ ] Normaliser les noms de colonnes entre datasets
-  - [ ] Sauvegarder CSVs intermédiaires
+- [x] **5.2** Créer script `feature_extraction.py`
+  - [x] Extraire features réseau: IP src/dst, ports, protocoles
+  - [x] Calculer taille paquets, flags TCP, durations
+  - [x] Normaliser les noms de colonnes entre datasets
+  - [x] Sauvegarder CSVs intermédiaires
 
-- [ ] **5.3** Documentation des datasets
-  - [ ] Documenter structure et format de chaque dataset
-  - [ ] Lister les types d'attaques par dataset
-  - [ ] Créer guide d'utilisation
+- [x] **5.3** Documentation des datasets
+  - [x] Documenter structure et format de chaque dataset
+  - [x] Lister les types d'attaques par dataset
+  - [x] Créer guide d'utilisation
 
 ### Phase 6 : Approfondissement du Prétraitement
 **Priorité:** HAUTE  
