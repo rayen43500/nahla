@@ -61,11 +61,11 @@
 **Priorité:** HAUTE  
 **Dépendances:** Phase 5  
 
-- [ ] **6.1** Enrichir `data_prep.py`
-  - [ ] Gérer déséquilibre de classes (SMOTE, class_weights)
-  - [ ] Détection et gestion des valeurs manquantes avancée
-  - [ ] Feature scaling robuste (RobustScaler pour outliers)
-  - [ ] Ajouter PCA/réduction dimensionnalité optionnelle
+- [x] **6.1** Enrichir `data_prep.py`
+  - [x] Gérer déséquilibre de classes (SMOTE, class_weights)
+  - [x] Détection et gestion des valeurs manquantes avancée
+  - [x] Feature scaling robuste (RobustScaler pour outliers)
+  - [x] Ajouter PCA/réduction dimensionnalité optionnelle
 
 - [ ] **6.2** Créer `data_augmentation.py`
   - [ ] Implémentation pour petit dataset
