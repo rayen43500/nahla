@@ -82,9 +82,23 @@ def build_preprocessor(df: pd.DataFrame, label_col: str, use_robust_scaler: bool
 
 def apply_smote(X: np.ndarray, y: np.ndarray, random_state: int = 42) -> Tuple[np.ndarray, np.ndarray]:
     """Apply SMOTE for class imbalance handling."""
-    smote = SMOTE(random_state=random_state, n_jobs=-1)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
-    return X_resampled, y_resampled
+    # Check if all classes have enough samples for SMOTE (requires at least k_neighbors)
+    unique, counts = np.unique(y, return_counts=True)
+    min_count = counts.min()
+    
+    if min_count < 6:
+        # Reduce k_neighbors if class is too small
+        k_neighbors = max(1, min_count - 1)
+        smote = SMOTE(k_neighbors=k_neighbors, random_state=random_state, n_jobs=-1)
+    else:
+        smote = SMOTE(random_state=random_state, n_jobs=-1)
+    
+    try:
+        X_resampled, y_resampled = smote.fit_resample(X, y)
+        return X_resampled, y_resampled
+    except Exception as e:
+        print(f"Warning: SMOTE failed ({e}), returning original data")
+        return X, y
 
 
 def apply_pca(X_train: np.ndarray, X_val: np.ndarray, X_test: np.ndarray, 
@@ -167,7 +181,6 @@ def main() -> None:
     parser.add_argument("--test-size", type=float, default=0.15, help="Test set fraction")
     parser.add_argument("--val-size", type=float, default=0.15, help="Validation set fraction")
     parser.add_argument("--smote", action="store_true", help="Apply SMOTE for class imbalance (train only)")
-    parser.add_argument("--robust-scaler", action="store_false", default=True, help="Use RobustScaler (default: True, set to disable)")
     parser.add_argument("--pca", type=float, default=None, help="Apply PCA with variance ratio (e.g., 0.95)")
     parser.add_argument("--class-weights", action="store_true", help="Compute class weights for imbalance handling")
     args = parser.parse_args()
@@ -204,7 +217,7 @@ def main() -> None:
     
     # Split data
     train_df, val_df, test_df = split_data(df, label_col=args.label, test_size=args.test_size, val_size=args.val_size)
-    pre = build_preprocessor(train_df, label_col=args.label, use_robust_scaler=args.robust_scaler)
+    pre = build_preprocessor(train_df, label_col=args.label, use_robust_scaler=True)
     pre.fit(train_df.drop(columns=[args.label]))
 
     # Transform data

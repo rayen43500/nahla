@@ -46,8 +46,11 @@ class DataAugmentation:
         Mixup augmentation: create virtual training examples.
         Blend two samples: X_new = lambda * X_i + (1-lambda) * X_j
         """
-        if num_samples is None:
+        if num_samples is None or num_samples <= 0:
             num_samples = len(X)
+        
+        if len(X) < 2:
+            return X, y
         
         indices_a = np.random.randint(0, len(X), num_samples)
         indices_b = np.random.randint(0, len(X), num_samples)
@@ -65,8 +68,11 @@ class DataAugmentation:
         CutMix augmentation: randomly mix portions of features.
         Mimics partial feature corruption/combination.
         """
-        if num_samples is None:
+        if num_samples is None or num_samples <= 0:
             num_samples = len(X)
+        
+        if len(X) < 2:
+            return X, y
         
         indices_a = np.random.randint(0, len(X), num_samples)
         indices_b = np.random.randint(0, len(X), num_samples)
@@ -77,8 +83,9 @@ class DataAugmentation:
             if np.random.rand() < mix_prob:
                 # Randomly select which features to replace
                 num_features = X.shape[1]
-                cut_point = np.random.randint(1, num_features)
-                X_new[i, cut_point:] = X[indices_b[i], cut_point:]
+                if num_features > 1:
+                    cut_point = np.random.randint(1, num_features)
+                    X_new[i, cut_point:] = X[indices_b[i], cut_point:]
         
         y_new = y[indices_a]
         return X_new, y_new
@@ -306,10 +313,11 @@ def augment_dataset(X_train: np.ndarray, y_train: np.ndarray,
             X_aug, y_aug = tech_func()
             # Safely sample from augmented data with correct bounds
             n_samples = min(n_per_technique, len(X_aug))
-            if n_samples > 0:
+            if n_samples > 0 and len(y_aug) == len(X_aug):
                 indices = np.random.choice(len(X_aug), n_samples, replace=False)
                 augmented_samples.append(X_aug[indices])
-                augmented_labels.extend(y_aug[indices])
+                # Convert to list to ensure proper type handling
+                augmented_labels.extend(list(y_aug[indices]))
         except Exception as e:
             print(f"Warning: {tech_name} failed - {e}")
             continue
@@ -355,7 +363,10 @@ def generate_synthetic_attacks(X_train: np.ndarray, y_train: np.ndarray,
     unique_classes, class_counts = np.unique(y_train, return_counts=True)
     majority_count = class_counts.max()
     
-    target_classes = [target_class] if target_class is not None else unique_classes
+    if target_class is not None:
+        target_classes = [target_class]
+    else:
+        target_classes = list(unique_classes)
     
     for cls in target_classes:
         cls_mask = y_train == cls

@@ -71,10 +71,10 @@
   - [x] Implémentation pour petit dataset
   - [x] Générateur de données synthétiques pour attaques
 
-- [ ] **6.3** Validation des données
-  - [ ] Vérifier pas de data leakage train/test
-  - [ ] Distribution features avant/après normalisation
-  - [ ] Test stratification par classe
+- [x] **6.3** Validation des données
+  - [x] Vérifier pas de data leakage train/test
+  - [x] Distribution features avant/après normalisation
+  - [x] Test stratification par classe
 
 ### Phase 7 : Modèles Deep Learning Avancés
 **Priorité:** HAUTE  
