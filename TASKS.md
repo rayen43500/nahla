@@ -67,9 +67,9 @@
   - [x] Feature scaling robuste (RobustScaler pour outliers)
   - [x] Ajouter PCA/réduction dimensionnalité optionnelle
 
-- [ ] **6.2** Créer `data_augmentation.py`
-  - [ ] Implémentation pour petit dataset
-  - [ ] Générateur de données synthétiques pour attaques
+- [x] **6.2** Créer `data_augmentation.py`
+  - [x] Implémentation pour petit dataset
+  - [x] Générateur de données synthétiques pour attaques
 
 - [ ] **6.3** Validation des données
   - [ ] Vérifier pas de data leakage train/test

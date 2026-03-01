@@ -167,7 +167,7 @@ def main() -> None:
     parser.add_argument("--test-size", type=float, default=0.15, help="Test set fraction")
     parser.add_argument("--val-size", type=float, default=0.15, help="Validation set fraction")
     parser.add_argument("--smote", action="store_true", help="Apply SMOTE for class imbalance (train only)")
-    parser.add_argument("--robust-scaler", action="store_true", default=True, help="Use RobustScaler (default: True)")
+    parser.add_argument("--robust-scaler", action="store_false", default=True, help="Use RobustScaler (default: True, set to disable)")
     parser.add_argument("--pca", type=float, default=None, help="Apply PCA with variance ratio (e.g., 0.95)")
     parser.add_argument("--class-weights", action="store_true", help="Compute class weights for imbalance handling")
     args = parser.parse_args()
@@ -236,6 +236,9 @@ def main() -> None:
             print(f"  Class {cls}: {count} samples")
     
     # Apply PCA if requested
+    pca_model = None
+    X_val = None
+    X_test = None
     if args.pca:
         print("\n" + "=" * 60)
         print("APPLYING PCA FOR DIMENSIONALITY REDUCTION")
@@ -283,15 +286,21 @@ def main() -> None:
     print(f"✓ Categorical columns: {len(getattr(pre, 'cat_cols_', []))}")
     if args.smote:
         print(f"✓ SMOTE applied to training set")
-    if args.pca:
+    if pca_model is not None:
         print(f"✓ PCA applied with {pca_model.n_components_} components")
     if args.class_weights:
         print(f"✓ Class weights saved")
     
     print(f"\nFinal dataset shapes:")
     print(f"  Train: {train_stats} → {X_train.shape}")
-    print(f"  Val: {val_stats['samples']} → {X_val.shape if args.pca else 'not transformed'}")
-    print(f"  Test: {test_stats['samples']} → {X_test.shape if args.pca else 'not transformed'}")
+    if X_val is not None:
+        print(f"  Val: {val_stats['samples']} → {X_val.shape}")
+    else:
+        print(f"  Val: {val_stats['samples']} → not transformed")
+    if X_test is not None:
+        print(f"  Test: {test_stats['samples']} → {X_test.shape}")
+    else:
+        print(f"  Test: {test_stats['samples']} → not transformed")
 
 
 if __name__ == "__main__":
