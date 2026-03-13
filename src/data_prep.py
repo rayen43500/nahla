@@ -89,9 +89,9 @@ def apply_smote(X: np.ndarray, y: np.ndarray, random_state: int = 42) -> Tuple[n
     if min_count < 6:
         # Reduce k_neighbors if class is too small
         k_neighbors = max(1, min_count - 1)
-        smote = SMOTE(k_neighbors=k_neighbors, random_state=random_state, n_jobs=-1)
+        smote = SMOTE(k_neighbors=k_neighbors, random_state=random_state)
     else:
-        smote = SMOTE(random_state=random_state, n_jobs=-1)
+        smote = SMOTE(random_state=random_state)
     
     try:
         X_resampled, y_resampled = smote.fit_resample(X, y)
@@ -120,33 +120,12 @@ def split_data(df: pd.DataFrame, label_col: str, test_size: float = 0.15, val_si
     y = df[label_col]
     X = df.drop(columns=[label_col])
     X_train, X_tmp, y_train, y_tmp = train_test_split(X, y, test_size=test_size + val_size, stratify=y, random_state=seed)
-    relative_val = val_size / (test_size + val_size)
-    X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=relative_val, stratify=y_tmp, random_state=seed)
+    relative_test = test_size / (test_size + val_size)
+    X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=relative_test, stratify=y_tmp, random_state=seed)
     train = X_train.copy(); train[label_col] = y_train
     val = X_val.copy(); val[label_col] = y_val
     test = X_test.copy(); test[label_col] = y_test
     return train, val, test
-
-
-def build_preprocessor(df: pd.DataFrame, label_col: str) -> ColumnTransformer:
-    feature_cols = [c for c in df.columns if c != label_col]
-    cat_cols = [c for c in feature_cols if df[c].dtype == object or str(df[c].dtype).startswith("category")]
-    num_cols = [c for c in feature_cols if c not in cat_cols]
-    numeric_pipe = Pipeline([
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler()),
-    ])
-    cat_pipe = Pipeline([
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore")),
-    ])
-    preprocessor = ColumnTransformer([
-        ("num", numeric_pipe, num_cols),
-        ("cat", cat_pipe, cat_cols),
-    ])
-    preprocessor.cat_cols_ = cat_cols  # type: ignore[attr-defined]
-    preprocessor.num_cols_ = num_cols  # type: ignore[attr-defined]
-    return preprocessor
 
 
 def transform_and_save(pre: ColumnTransformer, df: pd.DataFrame, label_col: str, out_path: pathlib.Path,

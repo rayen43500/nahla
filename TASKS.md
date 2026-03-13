@@ -80,166 +80,166 @@
 **Priorité:** HAUTE  
 **Dépendances:** Phase 4  
 
-- [ ] **7.1** Implémenter LSTM (`models.py`)
-  - [ ] Architecture LSTM à 2+ couches
-  - [ ] Bidirectionnel (BLSTM)
-  - [ ] Stateful option pour flux continu
-  - [ ] Dropout + BatchNorm
-  - [ ] Capacité à traiter séquences de paquets
+- [x] **7.1** Implémenter LSTM (`models.py`)
+  - [x] Architecture LSTM à 2+ couches
+  - [x] Bidirectionnel (BLSTM)
+  - [x] Stateful option pour flux continu
+  - [x] Dropout + BatchNorm
+  - [x] Capacité à traiter séquences de paquets
 
-- [ ] **7.2** Implémenter CNN (`models.py`)
-  - [ ] 1D CNN pour détection motifs
-  - [ ] Multiple kernel sizes
-  - [ ] MaxPooling + GlobalAveragePooling
-  - [ ] Convertir flux en matrices 2D
+- [x] **7.2** Implémenter CNN (`models.py`)
+  - [x] 1D CNN pour détection motifs
+  - [x] Multiple kernel sizes
+  - [x] MaxPooling + GlobalAveragePooling
+  - [x] Convertir flux en matrices 2D
 
-- [ ] **7.3** Implémenter Autoencoder (`models.py`)
-  - [ ] Encoder/Decoder symétrique
-  - [ ] Détection anomalies (reconstruction error)
-  - [ ] Bottleneck ajustable
+- [x] **7.3** Implémenter Autoencoder (`models.py`)
+  - [x] Encoder/Decoder symétrique
+  - [x] Détection anomalies (reconstruction error)
+  - [x] Bottleneck ajustable
 
-- [ ] **7.4** Modèle Hybride CNN-LSTM (`models.py`)
-  - [ ] CNN pour extraction features spatiales
-  - [ ] LSTM pour dépendances temporelles
-  - [ ] Fusion features avant classification
+- [x] **7.4** Modèle Hybride CNN-LSTM (`models.py`)
+  - [x] CNN pour extraction features spatiales
+  - [x] LSTM pour dépendances temporelles
+  - [x] Fusion features avant classification
 
-- [ ] **7.5** Modèles classiques (baseline)
-  - [ ] Random Forest (sklearn)
-  - [ ] SVM avec kernel RBF
-  - [ ] Gradient Boosting (XGBoost)
-  - [ ] Pour comparaison avec DL
+- [x] **7.5** Modèles classiques (baseline)
+  - [x] Random Forest (sklearn)
+  - [x] SVM avec kernel RBF
+  - [x] Gradient Boosting (XGBoost)
+  - [x] Pour comparaison avec DL
 
 ### Phase 8 : Entraînement Complet
 **Priorité:** HAUTE  
 **Dépendances:** Phase 6, 7  
 
-- [ ] **8.1** Améliorer `train.py`
-  - [ ] Early stopping (validation loss)
-  - [ ] Learning rate scheduling (ReduceLROnPlateau)
-  - [ ] Model checkpointing (meilleur modèle)
-  - [ ] Logs complètes (tensorboard ou wandb)
-  - [ ] Sauvegarde final model (.pt/.pth)
+- [x] **8.1** Améliorer `train.py`
+  - [x] Early stopping (validation loss)
+  - [x] Learning rate scheduling (ReduceLROnPlateau)
+  - [x] Model checkpointing (meilleur modèle)
+  - [x] Logs complètes (tensorboard ou wandb)
+  - [x] Sauvegarde final model (.pt/.pth)
 
-- [ ] **8.2** Créer `train_baselines.py`
-  - [ ] Entraîner Random Forest
-  - [ ] Entraîner SVM
-  - [ ] Entraîner XGBoost
-  - [ ] Sauvegarder chaque modèle
+- [x] **8.2** Créer `train_baselines.py`
+  - [x] Entraîner Random Forest
+  - [x] Entraîner SVM
+  - [x] Entraîner XGBoost
+  - [x] Sauvegarder chaque modèle
 
-- [ ] **8.3** Cross-validation
-  - [ ] K-fold pour validation robuste
-  - [ ] Stratifiée
-  - [ ] Pour chaque modèle
+- [x] **8.3** Cross-validation
+  - [x] K-fold pour validation robuste
+  - [x] Stratifiée
+  - [x] Pour chaque modèle
 
 ### Phase 9 : Évaluation et Métriques
 **Priorité:** HAUTE  
 **Dépendances:** Phase 8  
 
-- [ ] **9.1** Créer `evaluate.py`
-  - [ ] Calculer: Precision, Recall, F1-score, Accuracy
-  - [ ] TPR (True Positive Rate), FPR (False Positive Rate)
-  - [ ] Confusion matrix
-  - [ ] Classification report par classe
-  - [ ] Matrice de confusion normalisée
+- [x] **9.1** Créer `evaluate.py`
+  - [x] Calculer: Precision, Recall, F1-score, Accuracy
+  - [x] TPR (True Positive Rate), FPR (False Positive Rate)
+  - [x] Confusion matrix
+  - [x] Classification report par classe
+  - [x] Matrice de confusion normalisée
 
-- [ ] **9.2** Évaluation par type d'attaque
-  - [ ] Métriques séparées pour: DoS, DDoS, Infiltration, Scanning, etc.
-  - [ ] Identifier attaques les plus difficiles à détecter
+- [x] **9.2** Évaluation par type d'attaque
+  - [x] Métriques séparées pour: DoS, DDoS, Infiltration, Scanning, etc.
+  - [x] Identifier attaques les plus difficiles à détecter
 
-- [ ] **9.3** Analyse Zero-Day
-  - [ ] Entraîner sur subset d'attaque types
-  - [ ] Tester sur types d'attaques jamais vus
-  - [ ] Mesurer robustesse à l'inconnu
+- [x] **9.3** Analyse Zero-Day
+  - [x] Entraîner sur subset d'attaque types
+  - [x] Tester sur types d'attaques jamais vus
+  - [x] Mesurer robustesse à l'inconnu
 
 ### Phase 10 : Visualisation et Analyse
 **Priorité:** MÉDIUM-HAUTE  
 **Dépendances:** Phase 9  
 
-- [ ] **10.1** Créer `visualize.py`
-  - [ ] Courbes ROC (One-vs-Rest)
-  - [ ] Courbes PR (Precision-Recall)
-  - [ ] Confusion matrices heatmaps
-  - [ ] Distribution des prédictions par classe
+- [x] **10.1** Créer `visualize.py`
+  - [x] Courbes ROC (One-vs-Rest)
+  - [x] Courbes PR (Precision-Recall)
+  - [x] Confusion matrices heatmaps
+  - [x] Distribution des prédictions par classe
 
-- [ ] **10.2** Analyse entraînement
-  - [ ] Courbes loss/accuracy train/val
-  - [ ] Learning curves (impact taille dataset)
-  - [ ] Feature importance (si applicable)
+- [x] **10.2** Analyse entraînement
+  - [x] Courbes loss/accuracy train/val
+  - [x] Learning curves (impact taille dataset)
+  - [x] Feature importance (si applicable)
 
-- [ ] **10.3** Rapport de comparaison
-  - [ ] Tableau comparatif DL vs ML classique
-  - [ ] Temps d'inférence
-  - [ ] Ressources utilisées (GPU/CPU)
+- [x] **10.3** Rapport de comparaison
+  - [x] Tableau comparatif DL vs ML classique
+  - [x] Temps d'inférence
+  - [x] Ressources utilisées (GPU/CPU)
 
 ### Phase 11 : Optimisation et Tuning
 **Priorité:** MÉDIUM  
 **Dépendances:** Phase 8, 9  
 
-- [ ] **11.1** Hyperparameter Tuning
-  - [ ] Tester nombre couches (2-5)
-  - [ ] Tester hidden dimensions (128, 256, 512)
-  - [ ] Tester learning rates (1e-4 à 1e-2)
-  - [ ] Tester batch sizes (32, 64, 128, 256)
-  - [ ] Dropout rates (0.1 à 0.5)
-  - [ ] Utiliser Optuna ou GridSearch
+- [x] **11.1** Hyperparameter Tuning
+  - [x] Tester nombre couches (2-5)
+  - [x] Tester hidden dimensions (128, 256, 512)
+  - [x] Tester learning rates (1e-4 à 1e-2)
+  - [x] Tester batch sizes (32, 64, 128, 256)
+  - [x] Dropout rates (0.1 à 0.5)
+  - [x] Utiliser Optuna ou GridSearch
 
-- [ ] **11.2** Architecture Search
-  - [ ] Tester LSTM vs CNN vs Hybrid
-  - [ ] Tester profondeur optimal
-  - [ ] Tester attention mechanisms
+- [x] **11.2** Architecture Search
+  - [x] Tester LSTM vs CNN vs Hybrid
+  - [x] Tester profondeur optimal
+  - [x] Tester attention mechanisms
 
-- [ ] **11.3** Optimisation inférence
-  - [ ] Model quantization (8-bit, FP16)
-  - [ ] Knowledge distillation (petit modèle)
-  - [ ] ONNX export pour déploiement
+- [x] **11.3** Optimisation inférence
+  - [x] Model quantization (8-bit, FP16)
+  - [x] Knowledge distillation (petit modèle)
+  - [x] ONNX export pour déploiement
 
 ### Phase 12 : API et Déploiement
 **Priorité:** MÉDIUM  
 **Dépendances:** Phase 8  
 
-- [ ] **12.1** Créer API FastAPI (`api.py`)
-  - [ ] Endpoint /predict (single packet flow)
-  - [ ] Endpoint /predict_batch (multiple flows)
-  - [ ] Health check endpoint
-  - [ ] Streaming pour temps réel
-  - [ ] Gestion d'erreurs
+- [x] **12.1** Créer API FastAPI (`api.py`)
+  - [x] Endpoint /predict (single packet flow)
+  - [x] Endpoint /predict_batch (multiple flows)
+  - [x] Health check endpoint
+  - [x] Streaming pour temps réel
+  - [x] Gestion d'erreurs
 
-- [ ] **12.2** Service temps réel
-  - [ ] Intégration avec Wireshark (pcap to features)
-  - [ ] Détection streaming
-  - [ ] Buffer gestion pour séquences
+- [x] **12.2** Service temps réel
+  - [x] Intégration avec Wireshark (pcap to features)
+  - [x] Détection streaming
+  - [x] Buffer gestion pour séquences
 
-- [ ] **12.3** Configuration productio
-  - [ ] Config file (.yaml)
-  - [ ] Logging structuré
-  - [ ] Monitoring performances
+- [x] **12.3** Configuration production
+  - [x] Config file (.yaml)
+  - [x] Logging structuré
+  - [x] Monitoring performances
 
 ### Phase 13 : Documentation et Tests
 **Priorité:** MÉDIUM  
 **Dépendances:** Toutes phases  
 
-- [ ] **13.1** Code documentation
-  - [ ] Docstrings Python complètes
-  - [ ] Type hints partout
-  - [ ] README.md main
-  - [ ] API documentation
+- [x] **13.1** Code documentation
+  - [x] Docstrings Python complètes
+  - [x] Type hints partout
+  - [x] README.md main
+  - [x] API documentation
 
-- [ ] **13.2** Tutoriels
-  - [ ] Quick start guide
-  - [ ] Comment télécharger datasets
-  - [ ] Comment entraîner modèles
-  - [ ] Comment utiliser API
+- [x] **13.2** Tutoriels
+  - [x] Quick start guide
+  - [x] Comment télécharger datasets
+  - [x] Comment entraîner modèles
+  - [x] Comment utiliser API
 
-- [ ] **13.3** Tests unitaires
-  - [ ] Test data_prep.py
-  - [ ] Test models.py
-  - [ ] Test train.py
-  - [ ] Test API endpoints
+- [x] **13.3** Tests unitaires
+  - [x] Test data_prep.py
+  - [x] Test models.py
+  - [x] Test train.py
+  - [x] Test API endpoints
 
-- [ ] **13.4** Résultats finaux
-  - [ ] Rapport complet (PDF/Markdown)
-  - [ ] Comparaison méthodes
-  - [ ] Conclusions
+- [x] **13.4** Résultats finaux
+  - [x] Rapport complet (PDF/Markdown)
+  - [x] Comparaison méthodes
+  - [x] Conclusions
 
 ---
 
@@ -325,4 +325,4 @@ projet/
 
 ---
 
-**Dernière mise à jour:** 25 février 2026
+**Dernière mise à jour:** 9 mars 2026
