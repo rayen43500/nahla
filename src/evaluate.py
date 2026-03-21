@@ -131,6 +131,8 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray,
     # ROC AUC per class if probabilities available
     if y_probs is not None and n_classes > 1:
         y_bin = label_binarize(y_true, classes=list(range(n_classes)))
+        if n_classes == 2 and y_bin.shape[1] == 1:
+            y_bin = np.hstack([1 - y_bin, y_bin])
         auc_per_class = {}
         for i, cls_name in enumerate(class_names):
             if y_bin[:, i].sum() > 0:

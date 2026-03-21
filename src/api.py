@@ -23,6 +23,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import create_model
 
 # ============================================================================

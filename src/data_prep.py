@@ -57,7 +57,7 @@ def analyze_class_distribution(y: pd.Series) -> Dict[str, Any]:
 def build_preprocessor(df: pd.DataFrame, label_col: str, use_robust_scaler: bool = True) -> ColumnTransformer:
     """Build preprocessing pipeline with RobustScaler for outlier handling."""
     feature_cols = [c for c in df.columns if c != label_col]
-    cat_cols = [c for c in feature_cols if df[c].dtype == object or str(df[c].dtype).startswith("category")]
+    cat_cols = [c for c in feature_cols if df[c].dtype == object or str(df[c].dtype).startswith("category") or str(df[c].dtype).startswith("string") or str(df[c].dtype) == "str"]
     num_cols = [c for c in feature_cols if c not in cat_cols]
     
     # Use RobustScaler if specified (robust to outliers), otherwise StandardScaler
@@ -208,8 +208,9 @@ def main() -> None:
     test_stats = transform_and_save(pre, test_df, args.label, args.outdir / "test.npz")
     
     # Load transformed training data for SMOTE and PCA
-    train_data = np.load(args.outdir / "train_raw.npz")
-    X_train, y_train = train_data['X'], train_data['y']
+    train_data = np.load(args.outdir / "train_raw.npz", allow_pickle=True)
+    X_train, y_train = train_data['X'].copy(), train_data['y'].copy()
+    train_data.close()
     
     # Apply SMOTE if requested
     pca_model = None
@@ -235,10 +236,12 @@ def main() -> None:
         print("\n" + "=" * 60)
         print("APPLYING PCA FOR DIMENSIONALITY REDUCTION")
         print("=" * 60)
-        val_data = np.load(args.outdir / "val.npz")
-        test_data = np.load(args.outdir / "test.npz")
-        X_val, y_val = val_data['X'], val_data['y']
-        X_test, y_test = test_data['X'], test_data['y']
+        val_data = np.load(args.outdir / "val.npz", allow_pickle=True)
+        test_data = np.load(args.outdir / "test.npz", allow_pickle=True)
+        X_val, y_val = val_data['X'].copy(), val_data['y'].copy()
+        X_test, y_test = test_data['X'].copy(), test_data['y'].copy()
+        val_data.close()
+        test_data.close()
         
         X_train, X_val, X_test, pca_model = apply_pca(X_train, X_val, X_test, variance_ratio=args.pca)
         
