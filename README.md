@@ -328,3 +328,19 @@ Pour questions ou issues:
 **Dernière mise à jour:** 25 février 2026  
 **Responsable:** Projet Machine Learning IoT Security  
 **Status:** En cours de développement - Phase 5
+
+
+
+
+
+python -m uvicorn src.api:app --reload --port 8000
+
+python src/train.py 
+ python src/data_prep.py --input data/raw/Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv --outdir data/preprocessed --label Label --smote
+
+ Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv
+
+ .\.venv\Scripts\Activate.ps1
+python src\data_prep.py --input "data/raw/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv" --outdir data/preprocessed --label Label --smote --smote-k-neighbors 3 --merge-webattacks --min-samples-per-class 50
+
+python src\train.py --data-dir data/preprocessed --epochs 20 --batch-size 256

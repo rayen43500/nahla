@@ -74,6 +74,48 @@ def predict_dl(model: nn.Module, loader: DataLoader, device: torch.device) -> Tu
     return np.concatenate(all_preds), np.concatenate(all_labels), np.vstack(all_probs)
 
 
+def predict_ensemble_mlp_rf(
+    mlp_checkpoint_path: pathlib.Path,
+    rf_model_path: pathlib.Path,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    batch_size: int,
+    alpha: float,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float]:
+    """Predict with weighted probability ensemble: alpha*MLP + (1-alpha)*RF."""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    checkpoint = torch.load(mlp_checkpoint_path, map_location=device, weights_only=False)
+    classes = np.array(checkpoint["classes"])
+    input_dim = checkpoint["input_dim"]
+    num_classes = checkpoint["num_classes"]
+    model_kwargs = checkpoint.get("model_kwargs", {})
+
+    mlp_model = create_model("mlp", input_dim, num_classes, **model_kwargs).to(device)
+    mlp_model.load_state_dict(checkpoint["model_state"])
+    mlp_model.eval()
+
+    rf_model = joblib.load(rf_model_path)
+
+    test_loader, _ = make_loader(X_test, y_test, batch_size)
+
+    t0 = time.time()
+    _, y_true, mlp_probs = predict_dl(mlp_model, test_loader, device)
+    rf_probs = rf_model.predict_proba(X_test)
+
+    if rf_probs.shape[1] != mlp_probs.shape[1]:
+        raise ValueError(
+            "Ensemble class count mismatch: "
+            f"MLP={mlp_probs.shape[1]} vs RF={rf_probs.shape[1]}"
+        )
+
+    ensemble_probs = alpha * mlp_probs + (1.0 - alpha) * rf_probs
+    y_pred = np.argmax(ensemble_probs, axis=1)
+    inference_time = time.time() - t0
+
+    return y_pred, y_true, ensemble_probs, classes, inference_time
+
+
 # ============================================================================
 # METRICS COMPUTATION
 # ============================================================================
@@ -293,12 +335,17 @@ def zero_day_analysis(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate trained models")
-    parser.add_argument("--data-dir", type=pathlib.Path, default=pathlib.Path("data"))
+    parser.add_argument("--data-dir", type=pathlib.Path, default=pathlib.Path("data/preprocessed"))
     parser.add_argument("--model-path", type=pathlib.Path, required=True,
                         help="Path to saved model (.pt for DL, .joblib for ML)")
     parser.add_argument("--model-type", type=str, default="mlp",
                         choices=["mlp", "lstm", "cnn", "autoencoder", "hybrid",
-                                 "random_forest", "svm", "xgboost", "gradient_boosting"])
+                                 "random_forest", "svm", "xgboost", "gradient_boosting",
+                                 "ensemble_mlp_rf"])
+    parser.add_argument("--rf-model-path", type=pathlib.Path, default=pathlib.Path("models/random_forest_model.joblib"),
+                        help="Random Forest model path for ensemble_mlp_rf")
+    parser.add_argument("--ensemble-alpha", type=float, default=0.6,
+                        help="Weight for MLP probs in ensemble: alpha*MLP + (1-alpha)*RF")
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--output-dir", type=pathlib.Path, default=pathlib.Path("results"))
     parser.add_argument("--zero-day", action="store_true", help="Run zero-day analysis")
@@ -311,7 +358,18 @@ def main() -> None:
 
     is_dl = args.model_type in {"mlp", "lstm", "cnn", "autoencoder", "hybrid"}
 
-    if is_dl:
+    if args.model_type == "ensemble_mlp_rf":
+        if not (0.0 <= args.ensemble_alpha <= 1.0):
+            raise ValueError("--ensemble-alpha must be between 0 and 1")
+        y_pred, y_true, y_probs, classes, inference_time = predict_ensemble_mlp_rf(
+            mlp_checkpoint_path=args.model_path,
+            rf_model_path=args.rf_model_path,
+            X_test=X_test,
+            y_test=y_test,
+            batch_size=args.batch_size,
+            alpha=args.ensemble_alpha,
+        )
+    elif is_dl:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         checkpoint = torch.load(args.model_path, map_location=device, weights_only=False)
         classes = checkpoint["classes"]

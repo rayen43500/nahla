@@ -10,6 +10,7 @@ from typing import List, Optional, Dict, Any
 from contextlib import asynccontextmanager
 
 import numpy as np
+import pandas as pd
 import torch
 import joblib
 from fastapi import FastAPI, HTTPException
@@ -164,6 +165,23 @@ def _get_model():
     return _state["model"]
 
 
+def _as_preprocessor_input(flows: List[List[float]]):
+    """Build the correct input type for sklearn preprocessors.
+
+    If the preprocessor was fit with DataFrame column names, pass a DataFrame
+    with matching columns; otherwise pass a numeric ndarray.
+    """
+    preprocessor = _state.get("preprocessor")
+    if preprocessor is None:
+        return np.asarray(flows, dtype=np.float32)
+
+    feature_names = getattr(preprocessor, "feature_names_in_", None)
+    if feature_names is not None and len(feature_names) > 0:
+        return pd.DataFrame(flows, columns=list(feature_names))
+
+    return np.asarray(flows, dtype=np.float32)
+
+
 # ============================================================================
 # CORE PREDICTION (FIXED)
 # ============================================================================
@@ -171,7 +189,8 @@ def _get_model():
 def _preprocess(features):
     """Apply preprocessing if available"""
     if "preprocessor" in _state:
-        return _state["preprocessor"].transform([features])[0]
+        pre_input = _as_preprocessor_input([features])
+        return _state["preprocessor"].transform(pre_input)[0]
     else:
         logger.warning("No preprocessing applied ⚠️")
         return features
@@ -262,7 +281,8 @@ async def predict_batch(batch: BatchFlowFeatures):
 
     # 🔥 APPLY PREPROCESSING
     if "preprocessor" in _state:
-        flows = _state["preprocessor"].transform(flows)
+        pre_input = _as_preprocessor_input(flows)
+        flows = _state["preprocessor"].transform(pre_input)
 
     X = torch.tensor(flows, dtype=torch.float32).to(_state["device"])
 

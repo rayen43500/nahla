@@ -142,7 +142,7 @@ def run_cross_validation(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train baseline ML models")
-    parser.add_argument("--data-dir", type=pathlib.Path, default=pathlib.Path("data"))
+    parser.add_argument("--data-dir", type=pathlib.Path, default=pathlib.Path("data/preprocessed"))
     parser.add_argument("--output-dir", type=pathlib.Path, default=pathlib.Path("models"))
     parser.add_argument("--cv-folds", type=int, default=5, help="Number of cross-validation folds")
     parser.add_argument("--skip-cv", action="store_true", help="Skip cross-validation")
