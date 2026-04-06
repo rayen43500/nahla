@@ -63,6 +63,49 @@ def sanitize_feature_values(df: pd.DataFrame, label_col: str) -> pd.DataFrame:
     return cleaned
 
 
+def merge_webattack_labels(df: pd.DataFrame, label_col: str) -> pd.DataFrame:
+    """Merge sparse WebAttack sub-classes into a single WebAttack class."""
+    merged = df.copy()
+
+    def _map_label(v: Any) -> Any:
+        s = str(v).strip().lower()
+        if "web attack" in s or "sql injection" in s or s == "xss" or "brute force" in s:
+            return "WebAttack"
+        return str(v).strip()
+
+    merged[label_col] = merged[label_col].map(_map_label)
+    return merged
+
+
+def simplify_ids_labels(df: pd.DataFrame, label_col: str) -> pd.DataFrame:
+    """Simplify labels to 4 IDS buckets: BENIGN, PortScan, DDoS, WebAttack."""
+    simplified = df.copy()
+
+    def _simplify(v: Any) -> str:
+        s = str(v).strip().lower()
+        if "benign" in s:
+            return "BENIGN"
+        if "portscan" in s or "port scan" in s:
+            return "PortScan"
+        if "ddos" in s:
+            return "DDoS"
+        return "WebAttack"
+
+    simplified[label_col] = simplified[label_col].map(_simplify)
+    return simplified
+
+
+def filter_rare_classes(df: pd.DataFrame, label_col: str, min_samples: int) -> pd.DataFrame:
+    """Drop classes with fewer than min_samples examples."""
+    if min_samples <= 1:
+        return df
+
+    counts = df[label_col].value_counts()
+    valid_classes = counts[counts >= min_samples].index
+    filtered = df[df[label_col].isin(valid_classes)].copy()
+    return filtered
+
+
 def detect_missing_values(df: pd.DataFrame, label_col: str) -> Dict[str, Any]:
     """Detect and report missing values statistics."""
     feature_cols = [c for c in df.columns if c != label_col]
@@ -127,13 +170,17 @@ def build_preprocessor(df: pd.DataFrame, label_col: str, use_robust_scaler: bool
     return preprocessor
 
 
-def apply_smote(X: np.ndarray, y: np.ndarray, random_state: int = 42) -> Tuple[np.ndarray, np.ndarray]:
+def apply_smote(X: np.ndarray, y: np.ndarray, random_state: int = 42,
+                preferred_k_neighbors: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
     """Apply SMOTE for class imbalance handling."""
     # Check if all classes have enough samples for SMOTE (requires at least k_neighbors)
     unique, counts = np.unique(y, return_counts=True)
     min_count = counts.min()
     
-    if min_count < 6:
+    if preferred_k_neighbors is not None:
+        k_neighbors = min(max(1, preferred_k_neighbors), max(1, min_count - 1))
+        smote = SMOTE(k_neighbors=k_neighbors, random_state=random_state)
+    elif min_count < 6:
         # Reduce k_neighbors if class is too small
         k_neighbors = max(1, min_count - 1)
         smote = SMOTE(k_neighbors=k_neighbors, random_state=random_state)
@@ -207,8 +254,16 @@ def main() -> None:
     parser.add_argument("--test-size", type=float, default=0.15, help="Test set fraction")
     parser.add_argument("--val-size", type=float, default=0.15, help="Validation set fraction")
     parser.add_argument("--smote", action="store_true", help="Apply SMOTE for class imbalance (train only)")
+    parser.add_argument("--smote-k-neighbors", type=int, default=None,
+                        help="SMOTE k_neighbors override (e.g., 3 for small classes)")
     parser.add_argument("--pca", type=float, default=None, help="Apply PCA with variance ratio (e.g., 0.95)")
     parser.add_argument("--class-weights", action="store_true", help="Compute class weights for imbalance handling")
+    parser.add_argument("--min-samples-per-class", type=int, default=1,
+                        help="Drop classes with fewer than this number of samples")
+    parser.add_argument("--merge-webattacks", action="store_true",
+                        help="Merge Web Attack sub-classes (SQLi/XSS/Brute Force) into 'WebAttack'")
+    parser.add_argument("--simplify-labels", action="store_true",
+                        help="Map labels to 4 classes: BENIGN, PortScan, DDoS, WebAttack")
     args = parser.parse_args()
 
     args.outdir.mkdir(parents=True, exist_ok=True)
@@ -218,6 +273,33 @@ def main() -> None:
     df = sanitize_feature_values(df, label_col)
     if label_col != args.label:
         print(f"Resolved label column '{args.label}' -> '{label_col}'")
+
+    if args.simplify_labels:
+        before_classes = int(df[label_col].nunique())
+        df = simplify_ids_labels(df, label_col)
+        after_classes = int(df[label_col].nunique())
+        print(f"Simplified labels to IDS buckets: {before_classes} -> {after_classes} classes")
+
+    if args.merge_webattacks:
+        before_classes = int(df[label_col].nunique())
+        df = merge_webattack_labels(df, label_col)
+        after_classes = int(df[label_col].nunique())
+        print(f"Merged WebAttack sub-classes: {before_classes} -> {after_classes} classes")
+
+    if args.min_samples_per_class > 1:
+        before_size = len(df)
+        before_classes = int(df[label_col].nunique())
+        df = filter_rare_classes(df, label_col, args.min_samples_per_class)
+        after_size = len(df)
+        after_classes = int(df[label_col].nunique())
+        removed = before_size - after_size
+        print(
+            f"Filtered rare classes (<{args.min_samples_per_class} samples): "
+            f"removed {removed} rows, classes {before_classes} -> {after_classes}"
+        )
+
+    if df.empty:
+        raise ValueError("No samples left after class filtering. Lower --min-samples-per-class.")
 
     # Detect and report missing values
     print("=" * 60)
@@ -242,6 +324,10 @@ def main() -> None:
     for cls, count in class_analysis['class_counts'].items():
         dist_pct = class_analysis['class_distribution_pct'][cls]
         print(f"  Class {cls}: {count} samples ({dist_pct:.2f}%)")
+
+    weak_classes = [cls for cls, count in class_analysis["class_counts"].items() if count < 1000]
+    if weak_classes:
+        print("Warning: classes below 1000 samples detected:", ", ".join(map(str, weak_classes)))
     
     # Split data
     train_df, val_df, test_df = split_data(df, label_col=label_col, test_size=args.test_size, val_size=args.val_size)
@@ -268,7 +354,7 @@ def main() -> None:
         print("APPLYING SMOTE FOR CLASS IMBALANCE")
         print("=" * 60)
         print(f"Train set before SMOTE: {len(y_train)} samples")
-        X_train, y_train = apply_smote(X_train, y_train)
+        X_train, y_train = apply_smote(X_train, y_train, preferred_k_neighbors=args.smote_k_neighbors)
         print(f"Train set after SMOTE: {len(y_train)} samples")
         
         # Update class distribution after SMOTE

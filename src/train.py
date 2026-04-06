@@ -20,7 +20,7 @@ import joblib
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import classification_report, f1_score
+from sklearn.metrics import classification_report, f1_score, recall_score
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 
@@ -90,6 +90,8 @@ def train_one_epoch(model: nn.Module, loader: DataLoader, criterion, optimizer, 
         logits = model(X_batch)
         loss = criterion(logits, y_batch)
         loss.backward()
+        if hasattr(optimizer, "_grad_clip_value") and optimizer._grad_clip_value is not None:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), optimizer._grad_clip_value)
         optimizer.step()
         total_loss += loss.item() * X_batch.size(0)
     return total_loss / len(loader.dataset)
@@ -154,7 +156,7 @@ def compute_val_loss(model: nn.Module, loader: DataLoader, criterion, device: to
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train DL model on preprocessed data")
-    parser.add_argument("--data-dir", type=pathlib.Path, default=pathlib.Path("data"))
+    parser.add_argument("--data-dir", type=pathlib.Path, default=pathlib.Path("data/preprocessed"))
     parser.add_argument("--model-type", type=str, default="mlp",
                         choices=["mlp", "lstm", "cnn", "autoencoder", "hybrid"])
     parser.add_argument("--epochs", type=int, default=50)
@@ -167,9 +169,22 @@ def main() -> None:
     parser.add_argument("--log-dir", type=pathlib.Path, default=pathlib.Path("runs"))
     parser.add_argument("--class-weights", type=pathlib.Path, default=None,
                         help="Path to class_weights.joblib")
+    parser.add_argument("--auto-class-weights", action="store_true",
+                        help="Compute inverse-frequency class weights from y_train")
+    parser.add_argument("--grad-clip", type=float, default=1.0,
+                        help="Gradient clipping max norm (set <= 0 to disable)")
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    required_files = ["train.npz", "val.npz", "test.npz"]
+    missing = [name for name in required_files if not (args.data_dir / name).exists()]
+    if missing:
+        missing_str = ", ".join(missing)
+        raise FileNotFoundError(
+            f"Missing required file(s) in {args.data_dir}: {missing_str}. "
+            "Run data preparation first or pass --data-dir to the folder containing train.npz/val.npz/test.npz."
+        )
 
     # Load data
     X_train, y_train = load_npz(args.data_dir / "train.npz")
@@ -212,11 +227,21 @@ def main() -> None:
             weights_dict = joblib.load(args.class_weights)
             weight_tensor = torch.tensor([weights_dict.get(i, 1.0) for i in range(num_classes)],
                                          dtype=torch.float32).to(device)
+            print(f"Using class weights from file: {args.class_weights}")
+            criterion = nn.CrossEntropyLoss(weight=weight_tensor)
+        elif args.auto_class_weights:
+            class_counts = np.bincount(train_loader.dataset.tensors[1].numpy(), minlength=num_classes).astype(np.float32)
+            class_counts[class_counts == 0] = 1.0
+            weights = 1.0 / class_counts
+            weights = weights / weights.sum() * num_classes
+            weight_tensor = torch.tensor(weights, dtype=torch.float32).to(device)
+            print(f"Using auto class weights: {weights.tolist()}")
             criterion = nn.CrossEntropyLoss(weight=weight_tensor)
         else:
             criterion = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer._grad_clip_value = args.grad_clip if args.grad_clip and args.grad_clip > 0 else None
 
     # Learning rate scheduler
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -234,7 +259,7 @@ def main() -> None:
     best_val_loss = float("inf")
     best_state = None
     best_epoch = 0
-    history = {"train_loss": [], "val_loss": [], "lr": []}
+    history = {"train_loss": [], "val_loss": [], "lr": [], "val_macro_f1": []}
 
     print(f"\nStarting training for {args.epochs} epochs (patience={args.patience})...")
     print("-" * 70)
@@ -256,10 +281,18 @@ def main() -> None:
         history["val_loss"].append(val_loss)
         history["lr"].append(current_lr)
 
+        val_macro_f1 = float("nan")
+        if not is_autoencoder:
+            val_preds, val_labels = eval_model(model, val_loader, device)
+            val_macro_f1 = float(f1_score(val_labels, val_preds, average="macro", zero_division=0))
+        history["val_macro_f1"].append(val_macro_f1)
+
         # TensorBoard logging
         writer.add_scalar("Loss/train", train_loss, epoch)
         writer.add_scalar("Loss/val", val_loss, epoch)
         writer.add_scalar("LR", current_lr, epoch)
+        if not is_autoencoder:
+            writer.add_scalar("F1/val_macro", val_macro_f1, epoch)
 
         # Checkpoint best model
         improved = ""
@@ -278,7 +311,7 @@ def main() -> None:
 
         print(f"Epoch {epoch:3d}/{args.epochs} | "
               f"train_loss={train_loss:.5f} | val_loss={val_loss:.5f} | "
-              f"lr={current_lr:.2e} | {elapsed:.1f}s{improved}")
+              f"val_macro_f1={val_macro_f1:.4f} | lr={current_lr:.2e} | {elapsed:.1f}s{improved}")
 
         # LR scheduler step
         scheduler.step(val_loss)
@@ -306,9 +339,18 @@ def main() -> None:
         report = classification_report(test_labels, test_preds,
                                        target_names=[str(c) for c in classes])
         print(report)
+        macro_f1 = f1_score(test_labels, test_preds, average="macro", zero_division=0)
+        weighted_f1 = f1_score(test_labels, test_preds, average="weighted", zero_division=0)
+        macro_recall = recall_score(test_labels, test_preds, average="macro", zero_division=0)
+        print(f"Macro F1: {macro_f1:.4f} | Weighted F1: {weighted_f1:.4f} | Macro Recall: {macro_recall:.4f}")
         report_dict = classification_report(test_labels, test_preds,
                                             target_names=[str(c) for c in classes],
                                             output_dict=True)
+        report_dict["summary"] = {
+            "macro_f1": float(macro_f1),
+            "weighted_f1": float(weighted_f1),
+            "macro_recall": float(macro_recall),
+        }
 
     # Save final model
     save_path = args.output_dir / f"{args.model_type}_best.pt"
