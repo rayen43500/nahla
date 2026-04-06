@@ -16,6 +16,53 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
+def resolve_label_column(df: pd.DataFrame, requested_label: str) -> str:
+    """Resolve label column name robustly (exact, trimmed, and case-insensitive)."""
+    if requested_label in df.columns:
+        return requested_label
+
+    requested_norm = requested_label.strip().lower()
+
+    # Match when CSV headers contain leading/trailing spaces.
+    for col in df.columns:
+        if col.strip() == requested_label.strip():
+            return col
+
+    # Match case-insensitively after stripping spaces.
+    for col in df.columns:
+        if col.strip().lower() == requested_norm:
+            return col
+
+    available = ", ".join(df.columns.tolist())
+    raise ValueError(
+        f"Label column '{requested_label}' not found. Available columns: {available}"
+    )
+
+
+def sanitize_feature_values(df: pd.DataFrame, label_col: str) -> pd.DataFrame:
+    """Sanitize feature values to handle common CICIDS issues (spaces, inf strings)."""
+    cleaned = df.copy()
+    feature_cols = [c for c in cleaned.columns if c != label_col]
+
+    for col in feature_cols:
+        series = cleaned[col]
+
+        if series.dtype == object:
+            stripped = series.astype(str).str.strip()
+            numeric_candidate = pd.to_numeric(stripped, errors="coerce")
+
+            non_null_count = int(series.notna().sum())
+            if non_null_count > 0:
+                numeric_ratio = float(numeric_candidate.notna().sum()) / float(non_null_count)
+                # Convert object columns that are mostly numeric strings.
+                if numeric_ratio >= 0.95:
+                    cleaned[col] = numeric_candidate
+
+    replacement_tokens = [np.inf, -np.inf, "Infinity", "-Infinity", "inf", "-inf"]
+    cleaned[feature_cols] = cleaned[feature_cols].replace(replacement_tokens, np.nan)
+    return cleaned
+
+
 def detect_missing_values(df: pd.DataFrame, label_col: str) -> Dict[str, Any]:
     """Detect and report missing values statistics."""
     feature_cols = [c for c in df.columns if c != label_col]
@@ -167,14 +214,16 @@ def main() -> None:
     args.outdir.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(args.input)
 
-    if args.label not in df.columns:
-        raise ValueError(f"Label column {args.label} not found")
+    label_col = resolve_label_column(df, args.label)
+    df = sanitize_feature_values(df, label_col)
+    if label_col != args.label:
+        print(f"Resolved label column '{args.label}' -> '{label_col}'")
 
     # Detect and report missing values
     print("=" * 60)
     print("MISSING VALUES ANALYSIS")
     print("=" * 60)
-    missing_stats = detect_missing_values(df, args.label)
+    missing_stats = detect_missing_values(df, label_col)
     if missing_stats:
         print(f"Found missing values in {len(missing_stats)} columns:")
         for col, stats in missing_stats.items():
@@ -186,7 +235,7 @@ def main() -> None:
     print("\n" + "=" * 60)
     print("CLASS DISTRIBUTION ANALYSIS")
     print("=" * 60)
-    class_analysis = analyze_class_distribution(df[args.label])
+    class_analysis = analyze_class_distribution(df[label_col])
     print(f"Number of classes: {class_analysis['num_classes']}")
     print(f"Imbalance ratio: {class_analysis['imbalance_ratio']:.3f}x")
     print("Class distribution:")
@@ -195,17 +244,17 @@ def main() -> None:
         print(f"  Class {cls}: {count} samples ({dist_pct:.2f}%)")
     
     # Split data
-    train_df, val_df, test_df = split_data(df, label_col=args.label, test_size=args.test_size, val_size=args.val_size)
-    pre = build_preprocessor(train_df, label_col=args.label, use_robust_scaler=True)
-    pre.fit(train_df.drop(columns=[args.label]))
+    train_df, val_df, test_df = split_data(df, label_col=label_col, test_size=args.test_size, val_size=args.val_size)
+    pre = build_preprocessor(train_df, label_col=label_col, use_robust_scaler=True)
+    pre.fit(train_df.drop(columns=[label_col]))
 
     # Transform data
     print("\n" + "=" * 60)
     print("DATA TRANSFORMATION")
     print("=" * 60)
-    train_stats = transform_and_save(pre, train_df, args.label, args.outdir / "train_raw.npz")
-    val_stats = transform_and_save(pre, val_df, args.label, args.outdir / "val.npz")
-    test_stats = transform_and_save(pre, test_df, args.label, args.outdir / "test.npz")
+    train_stats = transform_and_save(pre, train_df, label_col, args.outdir / "train_raw.npz")
+    val_stats = transform_and_save(pre, val_df, label_col, args.outdir / "val.npz")
+    test_stats = transform_and_save(pre, test_df, label_col, args.outdir / "test.npz")
     
     # Load transformed training data for SMOTE and PCA
     train_data = np.load(args.outdir / "train_raw.npz", allow_pickle=True)
