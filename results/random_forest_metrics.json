@@ -1,0 +1,99 @@
+{
+  "accuracy": 0.7395555555555555,
+  "f1_weighted": 0.6433670971377975,
+  "f1_macro": 0.43969532344262074,
+  "precision_weighted": 0.6195588549432652,
+  "recall_weighted": 0.7395555555555555,
+  "classification_report": {
+    "Benign": {
+      "precision": 0.7481916817359855,
+      "recall": 0.9827790973871734,
+      "f1-score": 0.8495893223819302,
+      "support": 1684.0
+    },
+    "Malicious": {
+      "precision": 0.23684210526315788,
+      "recall": 0.015901060070671377,
+      "f1-score": 0.029801324503311258,
+      "support": 566.0
+    },
+    "accuracy": 0.7395555555555555,
+    "macro avg": {
+      "precision": 0.4925168934995717,
+      "recall": 0.4993400787289224,
+      "f1-score": 0.43969532344262074,
+      "support": 2250.0
+    },
+    "weighted avg": {
+      "precision": 0.6195588549432652,
+      "recall": 0.7395555555555555,
+      "f1-score": 0.6433670971377975,
+      "support": 2250.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1655,
+      29
+    ],
+    [
+      557,
+      9
+    ]
+  ],
+  "confusion_matrix_normalized": [
+    [
+      0.982779097387115,
+      0.01722090261282558
+    ],
+    [
+      0.9840989399291546,
+      0.015901060070668566
+    ]
+  ],
+  "tpr_per_class": {
+    "Benign": 0.9827790973871734,
+    "Malicious": 0.015901060070671377
+  },
+  "fpr_per_class": {
+    "Benign": 0.9840989399293286,
+    "Malicious": 0.0172209026128266
+  },
+  "tpr_mean": 0.4993400787289224,
+  "fpr_mean": 0.5006599212710776,
+  "auc_per_class": {
+    "Benign": 0.4987042881243548,
+    "Malicious": 0.4987042881243548
+  },
+  "auc_macro": 0.4987042881243548,
+  "inference_time_seconds": 0.03162527084350586,
+  "inference_time_per_sample_ms": 0.01405567593044705,
+  "per_attack_analysis": {
+    "per_class_results": {
+      "Benign": {
+        "total_samples": 1684,
+        "correctly_classified": 1655,
+        "accuracy": 0.9827790973871734,
+        "misclassified_as": {
+          "Malicious": 29
+        }
+      },
+      "Malicious": {
+        "total_samples": 566,
+        "correctly_classified": 9,
+        "accuracy": 0.015901060070671377,
+        "misclassified_as": {
+          "Benign": 557
+        }
+      }
+    },
+    "hardest_to_detect": [
+      "Malicious",
+      "Benign"
+    ],
+    "easiest_to_detect": [
+      "Benign",
+      "Malicious"
+    ]
+  }
+}

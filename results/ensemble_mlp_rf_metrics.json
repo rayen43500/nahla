@@ -1,0 +1,171 @@
+{
+  "accuracy": 0.9953291814946619,
+  "f1_weighted": 0.9957270757940433,
+  "f1_macro": 0.9228425857563978,
+  "precision_weighted": 0.9964749860560581,
+  "recall_weighted": 0.9953291814946619,
+  "classification_report": {
+    "BENIGN": {
+      "precision": 0.9983748645720477,
+      "recall": 0.994066882416397,
+      "f1-score": 0.9962162162162163,
+      "support": 5562.0
+    },
+    "DDoS": {
+      "precision": 0.9994172494172494,
+      "recall": 0.9982537834691502,
+      "f1-score": 0.9988351776354106,
+      "support": 1718.0
+    },
+    "PortScan": {
+      "precision": 0.9976090854751942,
+      "recall": 0.9988031119090365,
+      "f1-score": 0.9982057416267942,
+      "support": 1671.0
+    },
+    "WebAttack": {
+      "precision": 0.5692307692307692,
+      "recall": 0.9024390243902439,
+      "f1-score": 0.6981132075471698,
+      "support": 41.0
+    },
+    "accuracy": 0.9953291814946619,
+    "macro avg": {
+      "precision": 0.8911579921738151,
+      "recall": 0.9733907005462068,
+      "f1-score": 0.9228425857563978,
+      "support": 8992.0
+    },
+    "weighted avg": {
+      "precision": 0.9964749860560581,
+      "recall": 0.9953291814946619,
+      "f1-score": 0.9957270757940433,
+      "support": 8992.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      5529,
+      1,
+      4,
+      28
+    ],
+    [
+      3,
+      1715,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      1669,
+      0
+    ],
+    [
+      4,
+      0,
+      0,
+      37
+    ]
+  ],
+  "confusion_matrix_normalized": [
+    [
+      0.9940668824163791,
+      0.00017979144192736103,
+      0.0007191657677094441,
+      0.005034160373966108
+    ],
+    [
+      0.0017462165308497236,
+      0.998253783469092,
+      0.0,
+      0.0
+    ],
+    [
+      0.0011968880909634233,
+      0.0,
+      0.9988031119089767,
+      0.0
+    ],
+    [
+      0.09756097560951814,
+      0.0,
+      0.0,
+      0.9024390243880428
+    ]
+  ],
+  "tpr_per_class": {
+    "BENIGN": 0.994066882416397,
+    "DDoS": 0.9982537834691502,
+    "PortScan": 0.9988031119090365,
+    "WebAttack": 0.9024390243902439
+  },
+  "fpr_per_class": {
+    "BENIGN": 0.0026239067055393588,
+    "DDoS": 0.00013747594171020073,
+    "PortScan": 0.0005463734462505122,
+    "WebAttack": 0.003128142107027148
+  },
+  "tpr_mean": 0.9733907005462068,
+  "fpr_mean": 0.001608974550131805,
+  "auc_per_class": {
+    "BENIGN": 0.9994840038034014,
+    "DDoS": 0.9997263284513104,
+    "PortScan": 0.9999964850301931,
+    "WebAttack": 0.9835990528378079
+  },
+  "auc_macro": 0.9957014675306782,
+  "inference_time_seconds": 0.17679190635681152,
+  "inference_time_per_sample_ms": 0.019661021614414093,
+  "per_attack_analysis": {
+    "per_class_results": {
+      "BENIGN": {
+        "total_samples": 5562,
+        "correctly_classified": 5529,
+        "accuracy": 0.994066882416397,
+        "misclassified_as": {
+          "DDoS": 1,
+          "PortScan": 4,
+          "WebAttack": 28
+        }
+      },
+      "DDoS": {
+        "total_samples": 1718,
+        "correctly_classified": 1715,
+        "accuracy": 0.9982537834691502,
+        "misclassified_as": {
+          "BENIGN": 3
+        }
+      },
+      "PortScan": {
+        "total_samples": 1671,
+        "correctly_classified": 1669,
+        "accuracy": 0.9988031119090365,
+        "misclassified_as": {
+          "BENIGN": 2
+        }
+      },
+      "WebAttack": {
+        "total_samples": 41,
+        "correctly_classified": 37,
+        "accuracy": 0.9024390243902439,
+        "misclassified_as": {
+          "BENIGN": 4
+        }
+      }
+    },
+    "hardest_to_detect": [
+      "WebAttack",
+      "BENIGN",
+      "DDoS",
+      "PortScan"
+    ],
+    "easiest_to_detect": [
+      "PortScan",
+      "DDoS",
+      "BENIGN",
+      "WebAttack"
+    ]
+  }
+}
