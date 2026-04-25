@@ -344,3 +344,14 @@ python src/train.py
 python src\data_prep.py --input "data/raw/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv" --outdir data/preprocessed --label Label --smote --smote-k-neighbors 3 --merge-webattacks --min-samples-per-class 50
 
 python src\train.py --data-dir data/preprocessed --epochs 20 --batch-size 256
+
+
+
+0.12,0.25,0.18,0.33,0.41,0.29,0.35,0.48,0.52,0.61,
+    5,8,12,15,20,25,30,35,40,45,
+    0.22,0.31,0.27,0.36,0.44,0.55,0.63,0.71,0.82,0.93,
+    120,150,180,210,250,300,350,400,450,500,
+    0.15,0.24,0.38,0.47,0.56,0.62,0.73,0.84,0.19,0.28,
+    700,800,900,1000,1200,1400,1600,1800,2000,2200,
+    0.51,0.63,0.72,0.81,0.92,0.14,0.26,0.37,0.48,0.59,
+    2400,2600,2800,3000,3200,3400,3600,3800
